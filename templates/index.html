@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Subdomain Creator - Flow Falcon</title>
+   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+   <style>
+       .gradient-bg {
+           background: linear-gradient(120deg, #1a202c 0%, #2d3748 100%);
+       }
+       .glass-effect {
+           background: rgba(255, 255, 255, 0.1);
+           backdrop-filter: blur(10px);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+       }
+       .hover-scale {
+           transition: transform 0.2s;
+       }
+       .hover-scale:hover {
+           transform: scale(1.02);
+       }
+       .animate-gradient {
+           background: linear-gradient(270deg, #3182ce, #63b3ed, #4299e1);
+           background-size: 200% 200%;
+           animation: gradient 3s ease infinite;
+       }
+       @keyframes gradient {
+           0% { background-position: 0% 50%; }
+           50% { background-position: 100% 50%; }
+           100% { background-position: 0% 50%; }
+       }
+   </style>
+</head>
+<body class="gradient-bg min-h-screen">
+   <div class="container mx-auto px-4 py-12">
+       <!-- Header -->
+       <div class="text-center mb-12">
+           <h1 class="text-4xl font-bold text-white mb-4">
+               <i class="fas fa-globe-americas mr-3"></i>Flow Falcon Subdomain Creator
+           </h1>
+           <p class="text-gray-300 text-lg">Create your subdomain in seconds with our powerful tools</p>
+       </div>
+
+       <!-- Main Card -->
+       <div class="max-w-2xl mx-auto">
+           <div class="glass-effect rounded-xl shadow-2xl p-8 hover-scale">
+               <!-- Form -->
+               <form id="subdomainForm" class="space-y-6">
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                           <label class="block text-white text-sm font-medium mb-2">
+                               <i class="fas fa-tag mr-2"></i>Subdomain
+                           </label>
+                           <input type="text" id="subdomain" 
+                                  class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                  required placeholder="Enter subdomain">
+                       </div>
+                       
+                       <div>
+                           <label class="block text-white text-sm font-medium mb-2">
+                               <i class="fas fa-server mr-2"></i>Domain
+                           </label>
+                           <select id="domain" 
+                                   class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                   required>
+                               <option value="">Select Domain</option>
+                           </select>
+                       </div>
+                   </div>
+
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                           <label class="block text-white text-sm font-medium mb-2">
+                               <i class="fas fa-database mr-2"></i>Record Type
+                           </label>
+                           <select id="type" 
+                                   class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                   required>
+                               <option value="A">A Record</option>
+                               <option value="CNAME">CNAME Record</option>
+                               <option value="TXT">TXT Record</option>
+                           </select>
+                       </div>
+                       
+                       <div>
+                           <label class="block text-white text-sm font-medium mb-2">
+                               <i class="fas fa-network-wired mr-2"></i>Content/IP
+                           </label>
+                           <input type="text" id="content" 
+                                  class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                  required placeholder="Enter IP or content">
+                       </div>
+                   </div>
+
+                   <div class="flex items-center space-x-3">
+                       <label class="flex items-center text-white cursor-pointer">
+                           <input type="checkbox" id="proxied" 
+                                  class="form-checkbox h-5 w-5 text-blue-500 rounded border-gray-700 bg-gray-800">
+                           <span class="ml-2">
+                               <i class="fas fa-shield-alt mr-2"></i>Enable Cloudflare Proxy
+                           </span>
+                       </label>
+                   </div>
+
+                   <button type="submit" 
+                           class="w-full animate-gradient text-white font-bold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center space-x-2">
+                       <i class="fas fa-plus-circle"></i>
+                       <span>Create Subdomain</span>
+                   </button>
+               </form>
+           </div>
+
+           <!-- Result Container -->
+           <div id="result-container"></div>
+       </div>
+   </div>
+
+   <script>
+       document.addEventListener('DOMContentLoaded', function() {
+           // Load domains
+           const domains = {{ domains|tojson|safe }};
+           const domainSelect = document.getElementById('domain');
+           
+           domains.forEach(domain => {
+               const option = document.createElement('option');
+               option.value = domain;
+               option.textContent = domain;
+               domainSelect.appendChild(option);
+           });
+
+           // Form submission
+           document.getElementById('subdomainForm').addEventListener('submit', async (e) => {
+               e.preventDefault();
+               
+               const data = {
+                   subdomain: document.getElementById('subdomain').value,
+                   domain: document.getElementById('domain').value,
+                   type: document.getElementById('type').value,
+                   content: document.getElementById('content').value,
+                   proxied: document.getElementById('proxied').checked
+               };
+               
+               try {
+                   const response = await fetch('/create_subdomain', {
+                       method: 'POST',
+                       headers: {
+                           'Content-Type': 'application/json'
+                       },
+                       body: JSON.stringify(data)
+                   });
+                   
+                   const result = await response.json();
+                   
+                   if (result.success) {
+                       let resultContainer = document.getElementById('result-container');
+                       if (!resultContainer) {
+                           resultContainer = document.createElement('div');
+                           resultContainer.id = 'result-container';
+                           document.getElementById('subdomainForm').insertAdjacentElement('afterend', resultContainer);
+                       }
+                       
+                       resultContainer.innerHTML = `
+                           <div class="mt-8 glass-effect rounded-xl p-6 hover-scale">
+                               <div class="flex items-center mb-4">
+                                   <i class="fas fa-check-circle text-green-400 text-2xl mr-3"></i>
+                                   <h3 class="text-green-400 text-xl font-bold">Subdomain Created Successfully!</h3>
+                               </div>
+                               <div class="space-y-3 text-white">
+                                   <div class="flex items-center">
+                                       <i class="fas fa-link w-8"></i>
+                                       <span class="text-gray-400 w-24">Name:</span>
+                                       <span>${data.subdomain}.${data.domain}</span>
+                                   </div>
+                                   <div class="flex items-center">
+                                       <i class="fas fa-network-wired w-8"></i>
+                                       <span class="text-gray-400 w-24">IP/Content:</span>
+                                       <span>${data.content}</span>
+                                   </div>
+                                   <div class="flex items-center">
+                                       <i class="fas fa-database w-8"></i>
+                                       <span class="text-gray-400 w-24">Type:</span>
+                                       <span>${data.type}</span>
+                                   </div>
+                                   <div class="flex items-center">
+                                       <i class="fas fa-shield-alt w-8"></i>
+                                       <span class="text-gray-400 w-24">Proxy:</span>
+                                       <span>${data.proxied ? 'Enabled' : 'Disabled'}</span>
+                                   </div>
+                               </div>
+                           </div>
+                       `;
+                       
+                       document.getElementById('subdomainForm').reset();
+                   } else {
+                       let resultContainer = document.getElementById('result-container');
+                       if (!resultContainer) {
+                           resultContainer = document.createElement('div');
+                           resultContainer.id = 'result-container';
+                           document.getElementById('subdomainForm').insertAdjacentElement('afterend', resultContainer);
+                       }
+                       
+                       resultContainer.innerHTML = `
+                           <div class="mt-8 glass-effect rounded-xl p-6 hover-scale">
+                               <div class="flex items-center">
+                                   <i class="fas fa-exclamation-circle text-red-400 text-2xl mr-3"></i>
+                                   <div class="text-red-400">
+                                       Failed to create subdomain: ${result.message}
+                                   </div>
+                               </div>
+                           </div>
+                       `;
+                   }
+               } catch (error) {
+                   console.error('Error:', error);
+                   let resultContainer = document.getElementById('result-container');
+                   if (!resultContainer) {
+                       resultContainer = document.createElement('div');
+                       resultContainer.id = 'result-container';
+                       document.getElementById('subdomainForm').insertAdjacentElement('afterend', resultContainer);
+                   }
+                   
+                   resultContainer.innerHTML = `
+                       <div class="mt-8 glass-effect rounded-xl p-6 hover-scale">
+                           <div class="flex items-center">
+                               <i class="fas fa-exclamation-circle text-red-400 text-2xl mr-3"></i>
+                               <div class="text-red-400">
+                                   An error occurred while creating the subdomain
+                               </div>
+                           </div>
+                       </div>
+                   `;
+               }
+           });
+       });
+   </script>
+</body>
+</html>
