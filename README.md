@@ -1,2 +1,1 @@
-# subdo
-# Subdomain-Generator
+coming soon
