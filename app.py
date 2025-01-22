@@ -16,6 +16,7 @@ def load_zones():
 @app.route('/')
 def index():
     zones = load_zones()
+    # Convert dict_keys to list untuk menghindari error serialisasi
     domains = list(zones.keys())
     return render_template('index.html', domains=domains)
 
@@ -23,7 +24,6 @@ def index():
 def create_subdomain():
     try:
         data = request.get_json()
-        zones = load_zones()
         
         subdomain = data['subdomain']
         domain = data['domain']
@@ -31,11 +31,10 @@ def create_subdomain():
         content = data['content']
         proxied = data['proxied']
         
+        zones = load_zones()
+        
         if domain not in zones:
-            return jsonify({
-                'success': False,
-                'message': f'Domain {domain} tidak ditemukan'
-            }), 400
+            return jsonify({'success': False, 'message': 'Domain tidak ditemukan'}), 400
             
         zone_id = zones[domain]['zone_id']
         api_key = zones[domain]['api_key']
@@ -54,30 +53,11 @@ def create_subdomain():
             'proxied': proxied
         }
         
-        print(f"Sending request to Cloudflare: {dns_record}")  # Debug print
-        
         response = requests.post(url, headers=headers, json=dns_record)
-        response_json = response.json()
-        
-        print(f"Cloudflare response: {response_json}")  # Debug print
-        
-        if response.status_code == 200:
-            return jsonify({
-                'success': True,
-                'message': f'Subdomain {subdomain}.{domain} berhasil dibuat!'
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'message': response_json.get('errors', [{'message': 'Unknown error'}])[0]['message']
-            }), response.status_code
-            
+        return jsonify(response.json())
+    
     except Exception as e:
-        print(f"Error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'message': f'Error: {str(e)}'
-        }), 500
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
