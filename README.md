@@ -2,6 +2,12 @@
 
 A web application built with Flask that allows users to easily create and manage subdomains through Cloudflare's API. This application features a modern, responsive UI with glass-effect design and animated elements.
 
+
+## Live Demo
+
+[https://subdomain-generator.flowfalcon.xyz](https://subdomain-generator.flowfalcon.xyz)
+
+
 ## Features
 
 - Create DNS records (A, CNAME, TXT)
@@ -10,6 +16,7 @@ A web application built with Flask that allows users to easily create and manage
 - Real-time feedback and notifications
 - Modern glass-effect UI with animations
 - Mobile-responsive design
+
 
 ## Project Structure
 
@@ -24,6 +31,7 @@ subdomain-creator/
 ├── zones.json
 └── README.md
 ```
+
 
 ## Prerequisites
 
@@ -60,12 +68,13 @@ pip install -r requirements.txt
 ```bash
 python app.py
 ```
-The application will be available at 
-[http://localhost:8080](http://localhost:8080)
+The application will be available at [http://localhost:8080](http://localhost:8080)
 
 2. Using WSGI:
 ```bash
 python wsgi.py
 ```
+
+
 
 ## Created By FlowFalcon
