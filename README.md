@@ -35,8 +35,8 @@ subdomain-creator/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/FlowFalcon/subdomain-creator.git
-cd flowfalcon-subdomain-creator
+git clone https://github.com/FlowFalcon/Subdomain-Generator.git
+cd Subdomain-Generator
 ```
 
 2. Install required dependencies:
